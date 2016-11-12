@@ -1,3 +1,10 @@
+import java.text.SimpleDateFormat
+//import java.util.Date
+import org.joda.time.DateTime
+import org.json4s.native.JsonMethods._
+
+import scala.util.Try
+
 case class Tweet(
   contributors: Option[Seq[Contributor]],
   coordinates: Option[Coordinates],
@@ -31,7 +38,13 @@ case class Tweet(
   withheldCopyright: Option[Boolean],
   withheldInCountries: Option[Seq[String]],
   withheldScope: Option[String]
-)
+){
+  def timestamp: Option[DateTime] = {
+    val sf = new SimpleDateFormat("EEE MMM dd HH:mm:ss ZZZZZ yyyy")
+    sf.setLenient(true)
+    Try(new DateTime(sf.parse(created_at))).toOption
+  }
+}
 case class Users(
   contributors_enabled: Boolean,
   created_at: String,

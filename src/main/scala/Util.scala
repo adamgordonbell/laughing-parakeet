@@ -1,4 +1,5 @@
 import akka.actor.ActorSystem
+import org.json4s.native.JsonMethods._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpHeader.ParsingResult
 import akka.http.scaladsl.model._
@@ -10,6 +11,7 @@ import org.json4s.DefaultFormats
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
+import scala.util.Try
 
 object Util {
   implicit val system = ActorSystem()
@@ -55,7 +57,10 @@ object Util {
     Http().singleRequest(httpRequest)
   }
 
-  def toStreamSource(response : HttpResponse) : Source[String,Any] = {
+  def toStreamSource(response : HttpResponse) : Source[Tweet,Any] = {
+    def parseTweet(json : String) : Option[Tweet] = {
+      Try(parse(json).extract[Tweet]).toOption
+    }
     if (response.status.intValue() != 200) {
       println(response.entity.dataBytes.runForeach(_.utf8String))
       Source.empty
@@ -63,6 +68,9 @@ object Util {
       response.entity.dataBytes
         .scan("")((acc, curr) => if (acc.contains("\r\n")) curr.utf8String else acc + curr.utf8String)
         .filter(_.contains("\r\n"))
+        .map(parseTweet)
+        .map(_.toList)
+        .mapConcat(identity)
     }
   }
 }
