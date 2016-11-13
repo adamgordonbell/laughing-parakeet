@@ -13,8 +13,10 @@ trait TopAnalytics[T] extends Analytics[T] {
 
   /*
     Limit Size of data, by only keeping the top shrinkSize counts when above maxSize
-    To prevent bias against dropped values, the lowest value is subtracted from all keys
-    This is like assuming that all keys not being tracked have the value of one less than smallest key
+
+    Renormalize counts towards 1:
+    To prevent bias against dropped values, the lowest value is subtracted from all keys. This gives the lowest key a
+    value of 1. This is like assuming that all keys not being tracked have the value of one less than smallest key
    */
   def resize() = {
     if(data.size > maxSize){

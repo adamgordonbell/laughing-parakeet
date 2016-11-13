@@ -2,7 +2,7 @@ package  com.cascadeofinsights.twitterstreat
 
 import akka.stream.scaladsl.Source
 import com.cascadeofinsights.twitterstreat.Util._
-import analytics.{Averages, CountPhotosAndUrls, TopHashtags, Total}
+import analytics._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -22,6 +22,7 @@ object StreamConsumer extends App {
     Averages.process(t)
     CountPhotosAndUrls.process(t)
     TopHashtags.process(t)
+    TopDomains.process(t)
   }).onComplete {
     case Success(d) => println("Stream ended without error")
     case Failure(t) => println("An error has occured: " + t.getMessage)
@@ -43,9 +44,12 @@ object StreamConsumer extends App {
 
     println(s"Top Hashtags:")
    for( (h,c) <- TopHashtags.result()){
-      println(s"\t$h ($c)")
+      println(s"\t$h")
    }
-    println(s"size : ${TopHashtags.data.size}")
+    println(s"Top Domains:")
+    for( (h,c) <- TopDomains.result()){
+      println(s"\t$h")
+    }
   }
   system.terminate()
 
