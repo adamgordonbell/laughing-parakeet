@@ -1,8 +1,8 @@
-package  com.cascadeofinsights.twitterstreat.analytics
+package com.cascadeofinsights.twitterstream.analytics
 
-import com.cascadeofinsights.twitterstreat.Tweet
-import com.vdurmont.emoji.{EmojiManager, EmojiParser}
-import com.cascadeofinsights.twitterstreat.Util._
+import com.cascadeofinsights.twitterstream.Tweet
+import com.cascadeofinsights.twitterstream.Util._
+import com.vdurmont.emoji.EmojiParser
 
 object TopEmoji extends  TopAnalytics[List[(String,Int)]] {
 

@@ -1,9 +1,18 @@
-package  com.cascadeofinsights.twitterstreat.analytics
+package com.cascadeofinsights.twitterstream.analytics
+
+import com.cascadeofinsights.twitterstream.Tweet
+import com.cascadeofinsights.twitterstream.Util._
 
 import scala.collection.concurrent.TrieMap
-import com.cascadeofinsights.twitterstreat.Tweet
-import com.cascadeofinsights.twitterstreat.Util._
 
+trait Analytics[T] {
+  def process(t : Tweet) : Unit
+  def result() : T
+}
+
+trait CountAnalytics[T] extends Analytics[T] {
+  val data : TrieMap[String,Int] = TrieMap[String,Int]()
+}
 
 trait TopAnalytics[T] extends Analytics[T] {
   val maxSize = 1000
@@ -28,11 +37,5 @@ trait TopAnalytics[T] extends Analytics[T] {
   }
 }
 
-trait CountAnalytics[T] extends Analytics[T] {
-  val data : TrieMap[String,Int] = TrieMap[String,Int]()
-}
 
-trait Analytics[T] {
-  def process(t : Tweet) : Unit
-  def result() : T
-}
+

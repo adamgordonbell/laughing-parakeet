@@ -1,9 +1,8 @@
-package  com.cascadeofinsights.twitterstreat
+package com.cascadeofinsights.twitterstream
 
 import java.text.NumberFormat
 
 import akka.actor.ActorSystem
-import org.json4s.native.JsonMethods._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpHeader.ParsingResult
 import akka.http.scaladsl.model._
@@ -12,6 +11,7 @@ import akka.stream.scaladsl.Source
 import com.hunorkovacs.koauth.domain.KoauthRequest
 import com.hunorkovacs.koauth.service.consumer.{DefaultConsumerService, RequestWithInfo}
 import org.json4s.DefaultFormats
+import org.json4s.native.JsonMethods._
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future

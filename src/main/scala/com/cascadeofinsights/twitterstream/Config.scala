@@ -1,4 +1,4 @@
-package  com.cascadeofinsights.twitterstreat
+package com.cascadeofinsights.twitterstream
 
 object Config {
   val consumerKey = "ihircCxcTQKrirwUJOBvu5z6C"

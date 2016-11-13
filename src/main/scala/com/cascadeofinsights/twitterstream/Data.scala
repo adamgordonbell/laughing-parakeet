@@ -1,9 +1,11 @@
-package  com.cascadeofinsights.twitterstreat
+package com.cascadeofinsights.twitterstream
 
-import org.joda.time.DateTime
 import java.text.SimpleDateFormat
 
+import org.joda.time.DateTime
+
 import scala.util.Try
+
 
 case class Tweet(
   contributors: Option[Seq[Contributor]],
