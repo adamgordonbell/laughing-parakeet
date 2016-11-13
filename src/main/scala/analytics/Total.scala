@@ -1,12 +1,13 @@
 package  com.cascadeofinsights.twitterstreat.analytics
 
 import com.cascadeofinsights.twitterstreat.Tweet
+import com.cascadeofinsights.twitterstreat.Util._
 
-object Total extends  Analytics[Int] {
+object Total extends  CountAnalytics[Int] {
 
   def process(t: Tweet): Unit = {
-    IncrementByKey("total")
+    data.IncrementByKey("total")
   }
 
-  override def result(): Int = data.getOrElse("total",0)
+  override def result(): Int = data.getCount("total")
 }

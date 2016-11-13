@@ -1,8 +1,8 @@
 package  com.cascadeofinsights.twitterstreat
 
+import java.text.NumberFormat
+
 import akka.actor.ActorSystem
-
-
 import org.json4s.native.JsonMethods._
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpHeader.ParsingResult
@@ -22,7 +22,6 @@ object Util {
   implicit val materializer = ActorMaterializer()
   implicit val formats = DefaultFormats
 
-  val map = TrieMap[String,Int]()
 
   val oAuthRequest: Future[RequestWithInfo] = {
     val consumer = new DefaultConsumerService(system.dispatcher)
@@ -75,6 +74,25 @@ object Util {
         .map(parseTweet)
         .map(_.toList)
         .mapConcat(identity)
+    }
+  }
+
+  implicit class DoubleAsPercentage(d: Double) {
+    def asPercentage = NumberFormat.getPercentInstance.format(d)
+  }
+
+  implicit class TrieHelper(data : TrieMap[String,Int]){
+    def IncrementByKey(key : String): Unit = {
+      val count = data.getOrElse(key, 0)
+      data(key) = count + 1
+    }
+
+    def getCount(key : String) : Int = {
+      data.getOrElse(key,0)
+    }
+
+    def takeTopSorted(i : Int ): List[(String, Int)] = {
+      data.toList.sortWith((a, b) => a._2 > b._2).take(i)
     }
   }
 }
