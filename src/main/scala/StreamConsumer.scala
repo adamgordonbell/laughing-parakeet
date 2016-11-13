@@ -1,21 +1,13 @@
+package  com.cascadeofinsights.twitterstreat
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpHeader.ParsingResult
-import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
-import com.hunorkovacs.koauth.domain.KoauthRequest
-import com.hunorkovacs.koauth.service.consumer.DefaultConsumerService
-import org.json4s._
-import org.json4s.native.JsonMethods._
+import akka.stream.scaladsl.Source
+import com.cascadeofinsights.twitterstreat.Util._
+import com.cascadeofinsights.twitterstreat.analytics.{Averages, Total}
 
-import scala.collection.concurrent.TrieMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.io.StdIn
-import scala.util.{Failure, Success, Try}
-import Util._
+import scala.util.{Failure, Success}
 
 object StreamConsumer extends App {
 
@@ -25,7 +17,10 @@ object StreamConsumer extends App {
 
   val stream: Future[Source[Tweet, Any]] = oauthHeader.flatMap(requestStreamWithAuth)
              .map(toStreamSource)
-  stream.flatMap(_.runForeach(Twitter.processTweet)).onComplete {
+  stream.flatMap(_.runForeach { t =>
+    Total.process(t)
+    Averages.process(t)
+  }).onComplete {
     case Success(d) => println("Stream ended without error")
     case Failure(t) => println("An error has occured: " + t.getMessage)
   }

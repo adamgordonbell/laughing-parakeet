@@ -1,6 +1,5 @@
-/**
-  * Created by adam on 11/12/16.
-  */
+package  com.cascadeofinsights.twitterstreat
+
 object Config {
   val consumerKey = "ihircCxcTQKrirwUJOBvu5z6C"
   val consumerSecret = "jVLlHEEuDRcaHP0LVmmwxVs7KZQseUX2Ca0uGAXe0sMO2wEI76"
