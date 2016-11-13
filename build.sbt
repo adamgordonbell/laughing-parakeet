@@ -11,5 +11,8 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.3.0",
 
   //datetime
- "joda-time" % "joda-time" % "2.7"
+ "joda-time" % "joda-time" % "2.7",
+
+  //emoji
+ "com.vdurmont" % "emoji-java" % "3.1.3"
 )

@@ -1,9 +1,7 @@
 package  com.cascadeofinsights.twitterstreat
 
-//import java.util.Date
 import org.joda.time.DateTime
 import java.text.SimpleDateFormat
-import org.json4s.native.JsonMethods._
 
 import scala.util.Try
 
