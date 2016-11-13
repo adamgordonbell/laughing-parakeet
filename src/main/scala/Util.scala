@@ -65,7 +65,7 @@ object Util {
       println(response.entity.dataBytes.runForeach(_.utf8String))
       Source.empty
     } else {
-      response.entity.dataBytes
+      response.entity.withoutSizeLimit().dataBytes
         .scan("")((acc, curr) => if (acc.contains("\r\n")) curr.utf8String else acc + curr.utf8String)
         .filter(_.contains("\r\n"))
         .map(parseTweet)
