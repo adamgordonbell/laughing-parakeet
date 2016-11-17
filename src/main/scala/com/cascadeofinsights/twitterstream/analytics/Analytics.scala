@@ -37,5 +37,10 @@ trait TopAnalytics[T] extends Analytics[T] {
   }
 }
 
+trait AnalyticsFlow[T]  {
+  def process(t : Tweet) : Option[T]
+}
 
-
+trait CountAnalyticsFlow[T] extends AnalyticsFlow[T] {
+  val data : TrieMap[String,Int] = TrieMap[String,Int]()
+}

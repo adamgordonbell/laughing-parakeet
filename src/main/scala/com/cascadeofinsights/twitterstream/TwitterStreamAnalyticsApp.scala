@@ -2,7 +2,7 @@ package com.cascadeofinsights.twitterstream
 
 import akka.stream.scaladsl.{Broadcast, Flow, Sink, Source}
 import Util._
-import akka.NotUsed
+import akka.{Done, NotUsed}
 import akka.stream.{ClosedShape, OverflowStrategy}
 import com.cascadeofinsights.twitterstream.analytics._
 import com.vdurmont.emoji.EmojiManager
@@ -38,8 +38,11 @@ object TwitterStreamAnalyticsApp extends App {
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
 
+//      val flow : Flow[Tweet,Option[Int],NotUsed] = Flow[Tweet].map(TotalFlow.process(_))
+      val sink : Sink[Option[Int],Future[Done]]  = Sink.foreach(t => print(t))
+
       val bcast = builder.add(Broadcast[Tweet](6))
-      source.buffer(1000, OverflowStrategy.dropTail) ~> bcast ~> Sink.foreach(Total.process)
+      source.buffer(1000, OverflowStrategy.dropTail) ~> bcast ~> Flow[Tweet].map(TotalFlow.process(_)) ~> sink
       bcast ~> Sink.foreach(Averages.process)
       bcast ~> Sink.foreach(CountPhotosAndUrls.process)
       bcast ~> Sink.foreach(TopHashtags.process)
@@ -47,6 +50,10 @@ object TwitterStreamAnalyticsApp extends App {
       bcast ~> Sink.foreach(TopEmoji.process)
       ClosedShape
     })
+  }
+
+  def print(x : Option[Int]) : Unit = {
+    x.map(println(_))
   }
 
   def printAnalyticsToConsole(): Unit = {
