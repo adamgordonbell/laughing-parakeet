@@ -40,12 +40,12 @@ object TwitterStreamAnalyticsApp extends App {
 
       val bcast = builder.add(Broadcast[Tweet](6))
       source.buffer(1000, OverflowStrategy.dropTail) ~>
-      bcast ~> Flow[Tweet].map(TotalFlow.process(_))              ~> new PersistSink[Int].sink
-      bcast ~> Flow[Tweet].map(AveragesFlow.process(_))           ~> new PersistSink[(Stats, Stats, Stats)].sink
-      bcast ~> Flow[Tweet].map(CountPhotosAndUrlsFlow.process(_)) ~> new PersistSink[(Int, Int)].sink
-      bcast ~> Flow[Tweet].map(TopHashtagsFlow.process(_))        ~> new PersistSink[List[(String, Int)]].sink
-      bcast ~> Flow[Tweet].map(TopDomainsFlow.process(_))         ~> new PersistSink[List[(String, Int)]].sink
-      bcast ~> Flow[Tweet].map(TopEmojiFlow.process(_))           ~> new PersistSink[List[(String, Int)]].sink
+      bcast ~> Flow[Tweet].map(TotalFlow.process(_))              ~> new PersistSink[Int]("total").sink
+      bcast ~> Flow[Tweet].map(AveragesFlow.process(_))           ~> new PersistSink[(Stats, Stats, Stats)]("ave").sink
+      bcast ~> Flow[Tweet].map(CountPhotosAndUrlsFlow.process(_)) ~> new PersistSink[(Int, Int)]("urls").sink
+      bcast ~> Flow[Tweet].map(TopHashtagsFlow.process(_))        ~> new PersistSink[List[(String, Int)]]("hash").sink
+      bcast ~> Flow[Tweet].map(TopDomainsFlow.process(_))         ~> new PersistSink[List[(String, Int)]]("domains").sink
+      bcast ~> Flow[Tweet].map(TopEmojiFlow.process(_))           ~> new PersistSink[List[(String, Int)]]("emoji").sink
       ClosedShape
     })
   }
@@ -55,31 +55,38 @@ object TwitterStreamAnalyticsApp extends App {
   }
 
   def printAnalyticsToConsole(): Unit = {
-    println(s"Count: ${TotalFlow.result()}")
-    val (seconds, minutes, hours) = AveragesFlow.result()
+    val total = Config.DB.getOrElse("total",0)
+    println(s"Count: ${total}")
 
-    println(s"Seconds $seconds")
-    println(s"Minutes $minutes")
-    println(s"Hours $hours")
+    Config.DB.get("ave").asInstanceOf[Option[(Stats,Stats,Stats)]].map{ case (seconds, minutes, hours) =>
+      println(s"Seconds $seconds")
+      println(s"Minutes $minutes")
+      println(s"Hours $hours")
+    }
 
-    val (photo_Count, url_Count) = CountPhotosAndUrlsFlow.result
-    println(s"Percent With URL: ${(photo_Count.toDouble / TotalFlow.result).asPercentage}")
-    println(s"Percent With Photos: ${(url_Count.toDouble / TotalFlow.result).asPercentage}")
+    Config.DB.get("urls").asInstanceOf[Option[(Int,Int)]].map { case (photo_Count, url_Count) =>
+      println(s"Percent With URL: ${(photo_Count.toDouble / TotalFlow.result).asPercentage}")
+      println(s"Percent With Photos: ${(url_Count.toDouble / TotalFlow.result).asPercentage}")
+    }
 
     println(s"Top Hashtags:")
-    for ((h, c) <- TopHashtagsFlow.result()) {
-      println(s"\t$h")
+    Config.DB.get("hash").asInstanceOf[Option[List[(String,Int)]]].map { items =>
+      for ((h, c) <- items) {
+              println(s"\t$h")
+      }
     }
 
     println(s"Top Domains:")
-    for ((h, c) <- TopDomainsFlow.result()) {
-      println(s"\t$h")
+    Config.DB.get("domains").asInstanceOf[Option[List[(String,Int)]]].map { items =>
+      for ((h, c) <- items) {
+        println(s"\t$h")
+      }
     }
-
     println(s"Top Emojis:")
-    for ((h, c) <- TopEmojiFlow.result()) {
-      val unicode = EmojiManager.getForAlias(h).getUnicode()
-      println(s"\t$unicode (:$h:)")
+    Config.DB.get("emoji").asInstanceOf[Option[List[(String,Int)]]].map { items =>
+      for ((h, c) <- items) {
+        println(s"\t$h")
+      }
     }
   }
 }
