@@ -6,11 +6,11 @@ import com.cascadeofinsights.twitterstream.Tweet
 import com.cascadeofinsights.twitterstream.Util._
 import org.joda.time.{DateTime, Duration}
 
-object Averages extends  CountAnalytics[(Stats, Stats, Stats)] {
+object AveragesFlow extends  CountAnalyticsFlow[(Stats, Stats, Stats)] {
 
   val midnight = new DateTime().withTimeAtStartOfDay()
 
-  def process(t: Tweet): Unit = {
+  def process(t: Tweet): Option[(Stats, Stats, Stats)]  = {
     t.timestamp match {
       case Some(d) =>
         val duration = new Duration(midnight, d)
@@ -19,7 +19,9 @@ object Averages extends  CountAnalytics[(Stats, Stats, Stats)] {
         data.IncrementByKey("HOUR:"+duration.toStandardHours.getHours())
       case None =>
     }
+    optionResult()
   }
+
    private def getAverageByKey(key : String) : Double = {
      val (count, total) = mapByKey(key)
                             .foldRight((0,0))((kv,count) => (count._1 +1, count._2 + kv._2))
@@ -54,6 +56,7 @@ object Averages extends  CountAnalytics[(Stats, Stats, Stats)] {
     ,statsByKey("HOUR:"))
   }
 }
+
 
 case class Stats(average : Double, min : Int, max : Int){
   override def toString: String = {

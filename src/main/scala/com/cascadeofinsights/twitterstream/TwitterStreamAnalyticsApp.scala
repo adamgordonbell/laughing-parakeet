@@ -38,16 +38,14 @@ object TwitterStreamAnalyticsApp extends App {
     RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
 
-//      val flow : Flow[Tweet,Option[Int],NotUsed] = Flow[Tweet].map(TotalFlow.process(_))
-      val sink : Sink[Option[Int],Future[Done]]  = Sink.foreach(t => print(t))
-
       val bcast = builder.add(Broadcast[Tweet](6))
-      source.buffer(1000, OverflowStrategy.dropTail) ~> bcast ~> Flow[Tweet].map(TotalFlow.process(_)) ~> sink
-      bcast ~> Sink.foreach(Averages.process)
-      bcast ~> Sink.foreach(CountPhotosAndUrls.process)
-      bcast ~> Sink.foreach(TopHashtags.process)
-      bcast ~> Sink.foreach(TopDomains.process)
-      bcast ~> Sink.foreach(TopEmoji.process)
+      source.buffer(1000, OverflowStrategy.dropTail) ~>
+      bcast ~> Flow[Tweet].map(TotalFlow.process(_))              ~> new PersistSink[Int].sink
+      bcast ~> Flow[Tweet].map(AveragesFlow.process(_))           ~> new PersistSink[(Stats, Stats, Stats)].sink
+      bcast ~> Flow[Tweet].map(CountPhotosAndUrlsFlow.process(_)) ~> new PersistSink[(Int, Int)].sink
+      bcast ~> Flow[Tweet].map(TopHashtagsFlow.process(_))        ~> new PersistSink[List[(String, Int)]].sink
+      bcast ~> Flow[Tweet].map(TopDomainsFlow.process(_))         ~> new PersistSink[List[(String, Int)]].sink
+      bcast ~> Flow[Tweet].map(TopEmojiFlow.process(_))           ~> new PersistSink[List[(String, Int)]].sink
       ClosedShape
     })
   }
@@ -57,29 +55,29 @@ object TwitterStreamAnalyticsApp extends App {
   }
 
   def printAnalyticsToConsole(): Unit = {
-    println(s"Count: ${Total.result()}")
-    val (seconds, minutes, hours) = Averages.result()
+    println(s"Count: ${TotalFlow.result()}")
+    val (seconds, minutes, hours) = AveragesFlow.result()
 
     println(s"Seconds $seconds")
     println(s"Minutes $minutes")
     println(s"Hours $hours")
 
-    val (photo_Count, url_Count) = CountPhotosAndUrls.result
-    println(s"Percent With URL: ${(photo_Count.toDouble / Total.result).asPercentage}")
-    println(s"Percent With Photos: ${(url_Count.toDouble / Total.result).asPercentage}")
+    val (photo_Count, url_Count) = CountPhotosAndUrlsFlow.result
+    println(s"Percent With URL: ${(photo_Count.toDouble / TotalFlow.result).asPercentage}")
+    println(s"Percent With Photos: ${(url_Count.toDouble / TotalFlow.result).asPercentage}")
 
     println(s"Top Hashtags:")
-    for ((h, c) <- TopHashtags.result()) {
+    for ((h, c) <- TopHashtagsFlow.result()) {
       println(s"\t$h")
     }
 
     println(s"Top Domains:")
-    for ((h, c) <- TopDomains.result()) {
+    for ((h, c) <- TopDomainsFlow.result()) {
       println(s"\t$h")
     }
 
     println(s"Top Emojis:")
-    for ((h, c) <- TopEmoji.result()) {
+    for ((h, c) <- TopEmojiFlow.result()) {
       val unicode = EmojiManager.getForAlias(h).getUnicode()
       println(s"\t$unicode (:$h:)")
     }

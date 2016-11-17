@@ -4,13 +4,14 @@ import com.cascadeofinsights.twitterstream.Tweet
 import com.cascadeofinsights.twitterstream.Util._
 
 
-object TopDomains extends  TopAnalytics[List[(String,Int)]] {
+object TopDomainsFlow extends  TopAnalyticsFlow[List[(String,Int)]] {
 
-  def process(t: Tweet): Unit = {
+  def process(t: Tweet) = {
     for (h <- t.entities.urls) {
       data.IncrementByKey(h.url)
     }
     resize()
+    optionResult()
   }
 
   def result(): List[(String, Int)] = {
